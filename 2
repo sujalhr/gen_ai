@@ -48,6 +48,12 @@ filtered_words = explore_word_relationships("king", "man", "woman")
 words_to_visualize = words_to_explore + [word for word, _ in filtered_words]
 vectors_to_visualize = np.array([word_vectors[word] for word in words_to_visualize])
 
+visualize_word_embeddings(words_to_visualize, vectors_to_visualize, method='pca')
+visualize_word_embeddings(words_to_visualize, vectors_to_visualize, method='tsne')
+
+
+
+
 #part 2 
 domain_words = ["computer", "software", "hardware", "algorithm", "data", "network", "programming", "machine", "learning", "artificial"]
 domain_vectors = np.array([word_vectors[word] for word in domain_words])
@@ -84,7 +90,3 @@ visualize_word_embeddings(domain_words, domain_vectors, method='tsne', perplexit
 
 generate_similar_words("computer")
 generate_similar_words("learning")
-
-
-visualize_word_embeddings(words_to_visualize, vectors_to_visualize, method='pca')
-visualize_word_embeddings(words_to_visualize, vectors_to_visualize, method='tsne')
