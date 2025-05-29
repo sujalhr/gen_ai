@@ -1,0 +1,41 @@
+!pip install langchain cohere langchain-community google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+
+#1
+from google.colab import drive
+drive.mount('/content/drive')
+
+file_path = '/content/genai8.txt'  
+
+with open(file_path, 'r') as file:
+    document_text = file.read()
+
+print("Preview of document:\n", document_text[:300])
+
+#2
+import os
+from langchain_community.llms import Cohere  # Using updated import
+
+os.environ["COHERE_API_KEY"] = "U8FiZKsDeMvu3zc9ihZkTasHFCT9BGrtPEc2cBq7"
+
+llm = Cohere(cohere_api_key=os.environ["COHERE_API_KEY"])
+
+#3
+from langchain.prompts import PromptTemplate
+
+prompt = PromptTemplate(
+    input_variables=["document"],
+    template="""
+You are a helpful assistant.
+Given the following document, summarize it in **bullet points**:
+---
+{document}
+---
+Summary:
+"""
+)
+
+#4
+chain = prompt | llm
+response = chain.invoke({"document": document_text})
+
+print("Summary:\n", response)
