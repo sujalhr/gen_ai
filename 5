@@ -1,38 +1,22 @@
-import gensim.downloader as api
+from gensim.downloader import load
 import random
-import nltk
-from nltk.tokenize import sent_tokenize
 
-nltk.download('punkt')
+print("Loading model...")
+model = load("glove-wiki-gigaword-100")
+print("Done!")
 
-print("Loading pre-trained word vectors...")
-word_vectors = api.load("glove-wiki-gigaword-100") 
-print("Word vectors loaded successfully!")
+def make_para(word, sim_words):
+    random.shuffle(sim_words)
+    line1 = f"{word.capitalize()} relates to {', '.join(sim_words)}."
+    random.shuffle(sim_words)
+    line2 = f"People often associate it with {', '.join(sim_words)}."
+    return line1 + "\n" + line2
 
-def get_similar_words(seed_word, top_n=5):
-  try:
-    similar_words = word_vectors.most_similar(seed_word, topn=top_n)
-    return [word[0] for word in similar_words]
-  except KeyError:
-    print(f"'{seed_word}' not found in vocabulary. Try another word.")
-    return []
+word = input("Enter a word: ")
 
-def generate_sentence(seed_word, similar_words):
-  sentence_templates = [
-      f"The {seed_word} was surrounded by {similar_words[0]} and {similar_words[1]}.",
-      f"People often associate {seed_word} with {similar_words[2]} and {similar_words[3]}.",
-      f"In the land of {seed_word}, {similar_words[4]} was a common sight.",
-      f"A story about {seed_word} would be incomplete without {similar_words[1]} and {similar_words[3]}.",
-  ]
-  return random.choice(sentence_templates)
-  
-def generate_paragraph(seed_word):
-  similar_words = get_similar_words(seed_word, top_n=5)
-  if not similar_words:
-    return "Could not generate a paragraph. Try another seed word."
-  paragraph = [generate_sentence(seed_word, similar_words) for _ in range(4)]
-  return " ".join(paragraph)
-seed_word = input("Enter a seed word: ")
-paragraph = generate_paragraph(seed_word)
-print("\nGenerated Paragraph:\n")
-print(paragraph)
+try:
+    sim = [w for w, _ in model.most_similar(word, topn=5)]
+    print("\nGenerated Paragraph:\n")
+    print(make_para(word, sim))
+except KeyError:
+    print(f"'{word}' not in the model vocabulary.")
