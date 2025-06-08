@@ -1,71 +1,40 @@
-!pip install wikipedia pydantic
+!pip install wikipedia 
 
-from pydantic import BaseModel
-from typing import List, Optional
 import wikipedia
 import re
 
-class InstitutionDetails(BaseModel):
-    name: str
-    founder: Optional[str]
-    founded_year: Optional[str]
-    branches: Optional[List[str]]
-    number_of_employees: Optional[str]
-    summary: str
-
-def extract_institution_details(institution_name: str) -> InstitutionDetails:
+def get_institution_info(name):
     try:
-        page = wikipedia.page(institution_name)
-        summary = wikipedia.summary(institution_name, sentences=4)
-        content = page.content
+        summary = wikipedia.summary(name, sentences=3)
+        content = wikipedia.page(name).content
 
-        founder = None
-        founded_year = None
-        branches = []
-        employees = None
+        founder = re.search(r"founded\s+by\s+([^\.\n]+)", content, re.IGNORECASE)
+        year = re.search(r"\b(19|20)\d{2}\b", content)
+        employees = re.search(r"(\d{1,3}(?:,\d{3})*)\s+employees", content, re.IGNORECASE)
 
-        lines = content.split("\n")
-        for line in lines:
-            line_lower = line.lower()
-            if "founder" in line_lower and not founder:
-                match = re.search(r"(?i)founder(?:s)?\s*[:\-]?\s*(.*)", line)
-                if match:
-                    possible = match.group(1).strip()
+        return {
+            "name": name,
+            "summary": summary,
+            "founder": founder.group(1).strip() if founder else "Not found",
+            "founded_year": year.group(0) if year else "Not found",
+            "employees": employees.group(1) if employees else "Not found"
+        }
 
-                    if 0 < len(possible.split()) <= 10:
-                        founder = possible
-            if not founded_year:
-                match = re.search(r"\b(?:established|formed)\b[^0-9]{0,20}(\d{4})", line_lower)
-                if match:
-                    founded_year = match.group(1)
-            if re.search(r"(branches|departments)", line_lower) and ":" in line:
-                possible_branches = line.split(":", 1)[-1].strip()
-                if "," in possible_branches:
-                    branches = [b.strip() for b in possible_branches.split(",") if b.strip()]
-            if "employees" in line_lower or "staff" in line_lower:
-                match = re.search(r"(?i)(?:employees|staff)[^\d]*(\d{1,3}(?:,\d{3})*|\d+)", line)
-                if match:
-                    employees = match.group(1)
-
-        return InstitutionDetails(
-            name=institution_name,
-            founder=founder,
-            founded_year=founded_year,
-            branches=branches if branches else None,
-            number_of_employees=employees,
-            summary=summary
-        )
     except Exception as e:
-        return InstitutionDetails(
-            name=institution_name,
-            founder=None,
-            founded_year=None,
-            branches=None,
-            number_of_employees=None,
-            summary=f"Could not fetch summary due to: {str(e)}"
-        )
+        return {
+            "name": name,
+            "summary": f"Error: {e}",
+            "founder": "Not found",
+            "founded_year": "Not found",
+            "employees": "Not found"
+        }
 
 if __name__ == "__main__":
-    institution = input("Enter the name of the Institution: ")
-    result = extract_institution_details(institution)
-    print(result.model_dump_json(indent=4))
+    name = input("Enter institution name: ")
+    info = get_institution_info(name)
+
+    print(f"\nInstitution: {info['name']}")
+    print(f"Summary: {info['summary']}")
+    print(f"Founder: {info['founder']}")
+    print(f"Founded Year: {info['founded_year']}")
+    print(f"Employees: {info['employees']}")
