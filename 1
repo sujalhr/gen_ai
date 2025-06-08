@@ -1,52 +1,16 @@
-import gensim.downloader as api
-import numpy as np
-from numpy.linalg import norm
-
-print("Loading pre-trained word vectors...")
-word_vectors = api.load("word2vec-google-news-300")
-
-def print_similar_words(words, exclude=None, topn=5):
-    similar_words = words[:topn]
-    for word, similarity in similar_words:
-        if not exclude or word not in exclude:
-            print(f"{word}: {similarity:.4f}")
-
-def explore_word_relationships(word1, word2, word3):
-    try:
-        result_vector = word_vectors[word1] - word_vectors[word2] + word_vectors[word3]
-        similar_words = word_vectors.similar_by_vector(result_vector, topn=10)
-        print(f"\nWord Relationship: {word1} - {word2} + {word3}")
-        print("Most similar words (excluding input words):")
-        print_similar_words(similar_words, exclude={word1, word2, word3})
-    except KeyError as e:
-        print(f"Error: {e} not found in the vocabulary.")
-
-def analyze_similarity(word1, word2):
-    try:
-        similarity = word_vectors.similarity(word1, word2)
-        print(f"\nSimilarity between '{word1}' and '{word2}': {similarity:.4f}")
-    except KeyError as e:
-        print(f"Error: {e} not found in the vocabulary.")
-
-def find_most_similar(word):
-    try:
-        similar_words = word_vectors.most_similar(word, topn=5)
-        print(f"\nMost similar words to '{word}':")
-        print_similar_words(similar_words)
-    except KeyError as e:
-        print(f"Error: {e} not found in the vocabulary.")
-
-# Word relationship examples
-explore_word_relationships("king", "man", "woman")
-explore_word_relationships("paris", "france", "germany")
-explore_word_relationships("apple", "fruit", "carrot")
-
-# Similarity analysis examples
-analyze_similarity("cat", "dog")
-analyze_similarity("computer", "keyboard")
-analyze_similarity("music", "art")
-
-# Most similar words examples
-find_most_similar("happy")
-find_most_similar("sad")
-find_most_similar("technology")
+from gensim.downloader import load
+model=load('glove-wiki-gigaword-100')
+def wrd():
+    result=model.most_similar(positive=['king','woman'],negative=['man'],topn=1)
+    print("\n King-man+woman = ",result[0][0])
+    print("\n Similarity = ",result[0][1])
+    
+    result=model.most_similar(positive=['paris','italy'],negative=['france'],topn=1)
+    print("\n Paris- France+Italy = ",result[0][0])
+    print("\n Similarity = ",result[0][1])
+    
+    result=model.most_similar(positive=['programming'],topn=5)
+    print("Top 5 most similar words to programming:\n")
+    for word,similarity in result:
+        print(word,similarity)
+wrd()
