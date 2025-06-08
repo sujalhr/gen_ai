@@ -1,26 +1,28 @@
+# pip install gensim scikit-learn matplotlib
+
 import gensim.downloader as api
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
-print("Loading model...")
-model = api.load("glove-wiki-gigaword-100")
-print("Model loaded.\n")
+print("Loading model..")
+model = api.load("word2vec-google-news-300")
+print("Model downloaded")
 
-words = ['computer', 'internet', 'software', 'hardware', 'keyboard', 'mouse', 'server', 'network', 'programming', 'database']
+words = ['computer', 'network', 'hardware', 'software', 'mouse', 'keypad', 'monitor', 'database', 'internet', 'laptop', 'programming']
 vectors = [model[word] for word in words]
 
-reduced = PCA(n_components=2).fit_transform(vectors)
+pca = PCA(n_components=2)
+reduced = pca.fit_transform(vectors)
 
 input_word = 'computer'
-print(f"Top 5 words similar to '{input_word}':")
-for word, score in model.most_similar(input_word, topn=5):
-    print(f"{word}: {score:.4f}")
+print(f"Top 10 similar word to {input_word}:")
+for word, similarity in model.most_similar(input_word, topn=5):
+    print(f"{word} : {similarity:.4f}")
+print()
 
-plt.figure(figsize=(8, 6))
+plt.figure(figsize=(12, 8))
 for i, word in enumerate(words):
-    x, y = reduced[i]
-    plt.scatter(x, y)
-    plt.annotate(word, (x, y))
-plt.title("Technology Word Embeddings (PCA)")
-plt.grid(True)
+    plt.scatter(reduced[i, 0], reduced[i, 1])
+    plt.annotate(word, (reduced[i, 0], reduced[i, 1]))
+plt.title("PCA Visualization")
 plt.show()
