@@ -1,51 +1,27 @@
 from gensim.models import Word2Vec
 import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
-import numpy as np
 
-medical_corpus = [
-    "The patient was diagnosed with diabetes and hypertension.",
-    "MRI scans reveal abnormalities in the brain tissue.",
-    "The treatment involves antibiotics and regular monitoring.",
-    "Symptoms include fever, fatigue, and muscle pain.",
-    "The vaccine is effective against several viral infections.",
-    "Doctors recommend physical therapy for recovery.",
-    "The clinical trial results were published in the journal.",
-    "The surgeon performed a minimally invasive procedure.",
-    "The prescription includes pain relievers and anti-inflammatory drugs.",
-    "The diagnosis confirmed a rare genetic disorder."
+texts = [
+    "patient diabetes treatment",
+    "antibiotics therapy monitoring", 
+    "fever fatigue symptoms",
+    "vaccine viral infection",
+    "doctor therapy recovery"
 ]
 
-processed_corpus = [sentence.lower().split() for sentence in medical_corpus]
+model = Word2Vec([text.split() for text in texts], min_count=1)
 
-print("Training Word2Vec model...")
-model = Word2Vec(sentences=processed_corpus, vector_size=100, window=5, min_count=1, workers=4, epochs=50)
-print("Model training complete!")
+print("Similar to 'treatment':")
+for word, score in model.wv.most_similar('treatment', topn=2):
+    print(f"  {word}: {score:.2f}")
 
-words = list(model.wv.index_to_key)
-embeddings = np.array([model.wv[word] for word in words])
+words = list(model.wv.key_to_index.keys())
+x = [model.wv[w][0] for w in words]
+y = [model.wv[w][1] for w in words]
 
-tsne = TSNE(n_components=2, random_state=42, perplexity=5, n_iter=300)
-tsne_result = tsne.fit_transform(embeddings)
-
-plt.figure(figsize=(10, 8))
-plt.scatter(tsne_result[:, 0], tsne_result[:, 1], color="blue")
+plt.figure(figsize=(8,6))
+plt.scatter(x, y)
 for i, word in enumerate(words):
-    plt.text(tsne_result[i, 0] + 0.02, tsne_result[i, 1] + 0.02, word, fontsize=12)
-plt.title("Word Embeddings Visualization (Medical Domain) 1JS22CI078")
-plt.xlabel("Dimension 1")
-plt.ylabel("Dimension 2")
-plt.grid(True)
+    plt.text(x[i], y[i], word)
+plt.title("Word Embeddings")
 plt.show()
-
-def find_similar_words(input_word, top_n=5):
-    try:
-        similar_words = model.wv.most_similar(input_word, topn=top_n)
-        print(f"Words similar to '{input_word}':")
-        for word, similarity in similar_words:
-            print(f" {word} ({similarity:.2f})")
-    except KeyError:
-        print(f"'{input_word}' not found in vocabulary.")
-
-find_similar_words("treatment")
-find_similar_words("vaccine")
